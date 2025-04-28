@@ -56,8 +56,7 @@
 
         #totalShares { border-color: #0984e3; color: #0984e3; }
         #totalPrice { border-color: #6c5ce7; color: #6c5ce7; }
-        #slPrice { border-color: #d63031; color: #d63031; }
-        #tpPrice { border-color: #00b894; color: #00b894; }
+        #riskReward { border-color: #00b894; color: #00b894; }
         #totalLoss { border-color: #ff7675; color: #ff7675; }
         #totalProfit { border-color: #00b894; color: #00b894; }
 
@@ -73,7 +72,7 @@
 </head>
 <body>
     <div class="card">
-        <h2>📈 Trade Calc</h2>
+        <h2>📈 Trade Calculator</h2>
         
         <label>Capital ($)</label>
         <input type="number" id="capital" value="2000">
@@ -82,13 +81,13 @@
         <input type="number" id="riskPercent" value="2">
         
         <label>Buy Price ($)</label>
-        <input type="number" id="buyPrice" value="2.50">
+        <input type="number" id="buyPrice" value="50.00">
         
-        <label>Stop Distance ($)</label>
-        <input type="number" id="slDistance" value="0.10">
+        <label>Stop Loss Price ($)</label>
+        <input type="number" id="slPrice" value="48.00">
         
-        <label>Risk/Reward</label>
-        <input type="number" id="rrRatio" value="2">
+        <label>Take Profit Price ($)</label>
+        <input type="number" id="tpPrice" value="54.00">
 
         <div class="error-message" id="sizeError">
             ⚠️ Total position exceeds capital!
@@ -104,23 +103,18 @@
             <div class="result-value">$<span id="positionSize">0.00</span></div>
         </div>
 
-        <div class="highlight" id="slPrice">
-            <div>STOP LOSS (SL)</div>
-            <div class="result-value">$<span id="slValue">0.00</span></div>
-        </div>
-
-        <div class="highlight" id="tpPrice">
-            <div>TAKE PROFIT (TP)</div>
-            <div class="result-value">$<span id="tpValue">0.00</span></div>
+        <div class="highlight" id="riskReward">
+            <div>RISK/REWARD RATIO</div>
+            <div class="result-value" id="rrRatio">0.00</div>
         </div>
 
         <div class="highlight" id="totalLoss">
-            <div>MAX LOSS</div>
+            <div>POTENTIAL LOSS</div>
             <div class="result-value">$<span id="lossAmount">0.00</span></div>
         </div>
 
         <div class="highlight" id="totalProfit">
-            <div>TARGET PROFIT</div>
+            <div>POTENTIAL PROFIT</div>
             <div class="result-value">$<span id="profitAmount">0.00</span></div>
         </div>
     </div>
@@ -131,19 +125,18 @@
             const capital = parseFloat(document.getElementById('capital').value) || 0;
             const riskPercent = parseFloat(document.getElementById('riskPercent').value) || 0;
             const buyPrice = parseFloat(document.getElementById('buyPrice').value) || 0;
-            const slDistance = parseFloat(document.getElementById('slDistance').value) || 0;
-            const rrRatio = parseFloat(document.getElementById('rrRatio').value) || 0;
+            const slPrice = parseFloat(document.getElementById('slPrice').value) || 0;
+            const tpPrice = parseFloat(document.getElementById('tpPrice').value) || 0;
 
             // Core calculations
             const riskAmount = (capital * riskPercent) / 100;
-            const shares = slDistance > 0 ? Math.round(riskAmount / slDistance) : 0;
+            const riskPerShare = buyPrice - slPrice;
+            const rewardPerShare = tpPrice - buyPrice;
+            const shares = riskPerShare > 0 ? Math.round(riskAmount / riskPerShare) : 0;
             const positionSize = shares * buyPrice;
-            const commission = Math.max(1, Math.min(0.005 * shares, 0.01 * positionSize));
-            const totalLoss = riskAmount + commission;
-            const profitPerShare = slDistance * rrRatio;
-            const totalProfit = (profitPerShare * shares) - commission;
-            const slPrice = (buyPrice - slDistance).toFixed(2);
-            const tpPrice = (buyPrice + (slDistance * rrRatio)).toFixed(2);
+            const totalLoss = riskAmount;
+            const totalProfit = shares * rewardPerShare;
+            const rrRatio = riskPerShare > 0 ? (rewardPerShare / riskPerShare).toFixed(2) : 0;
 
             // Error handling
             const errorElement = document.getElementById('sizeError');
@@ -152,8 +145,7 @@
             // Update display
             document.getElementById('shares').textContent = shares;
             document.getElementById('positionSize').textContent = positionSize.toFixed(2);
-            document.getElementById('slValue').textContent = slPrice;
-            document.getElementById('tpValue').textContent = tpPrice;
+            document.getElementById('rrRatio').textContent = rrRatio;
             document.getElementById('lossAmount').textContent = totalLoss.toFixed(2);
             document.getElementById('profitAmount').textContent = totalProfit.toFixed(2);
         }
