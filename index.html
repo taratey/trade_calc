@@ -14,7 +14,7 @@
         body {
             padding: 15px;
             background: #f5f6fa;
-            max-width: 500px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
@@ -23,11 +23,20 @@
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .input-column, .results-column {
+            display: flex;
+            flex-direction: column;
         }
 
         h2 {
             color: #2d3436;
-            margin-bottom: 25px;
+            margin: 0 0 25px 0;
+            grid-column: 1 / -1;
             text-align: center;
         }
 
@@ -44,8 +53,9 @@
             background: #f8f9fa;
             padding: 15px;
             border-radius: 10px;
-            margin: 15px 0;
+            margin-bottom: 15px;
             border: 2px solid;
+            flex: 1;
         }
 
         .result-value {
@@ -65,70 +75,78 @@
             background: #ffebee;
             padding: 12px;
             border-radius: 8px;
-            margin: 15px 0;
+            margin-bottom: 15px;
             display: none;
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>📈 Trade Calculator</h2>
+        <h2>📈 Trade Calc</h2>
         
-        <label>Capital ($)</label>
-        <input type="number" id="capital" value="2000">
-        
-        <label>Risk (%)</label>
-        <input type="number" id="riskPercent" value="2">
-        
-        <label>Buy Price ($)</label>
-        <input type="number" id="buyPrice" value="50.00">
-        
-        <label>Stop Loss Price ($)</label>
-        <input type="number" id="slPrice" value="48.00">
-        
-        <label>Take Profit Price ($)</label>
-        <input type="number" id="tpPrice" value="54.00">
+        <div class="input-column">
+            <label>Capital ($)</label>
+            <input type="number" id="capital" value="2000">
+            
+            <label>Risk (%)</label>
+            <input type="number" id="riskPercent" value="2">
+            
+            <label>Buy Price ($)</label>
+            <input type="number" id="buyPrice" value="50.00">
+            
+            <label>Stop Loss Price ($)</label>
+            <input type="number" id="slPrice" value="48.00">
+            
+            <label>Take Profit Price ($)</label>
+            <input type="number" id="tpPrice" value="54.00">
 
-        <div class="error-message" id="sizeError">
-            ⚠️ Total position exceeds capital!
+            <div class="error-message" id="sizeError">
+                ⚠️ Total position exceeds capital!
+            </div>
         </div>
 
-        <div class="highlight" id="totalShares">
-            <div>SHARES TO BUY</div>
-            <div class="result-value" id="shares">0</div>
-        </div>
+        <div class="results-column">
+            <div class="highlight" id="totalShares">
+                <div>SHARES TO BUY</div>
+                <div class="result-value" id="shares">0</div>
+            </div>
 
-        <div class="highlight" id="totalPrice">
-            <div>TOTAL POSITION</div>
-            <div class="result-value">$<span id="positionSize">0.00</span></div>
-        </div>
+            <div class="highlight" id="totalPrice">
+                <div>TOTAL POSITION</div>
+                <div class="result-value">$<span id="positionSize">0.00</span></div>
+            </div>
 
-        <div class="highlight" id="riskReward">
-            <div>RISK/REWARD RATIO</div>
-            <div class="result-value" id="rrRatio">0.00</div>
-        </div>
+            <div class="highlight" id="riskReward">
+                <div>RISK/REWARD RATIO</div>
+                <div class="result-value" id="rrRatio">0.00</div>
+            </div>
 
-        <div class="highlight" id="totalLoss">
-            <div>POTENTIAL LOSS</div>
-            <div class="result-value">$<span id="lossAmount">0.00</span></div>
-        </div>
+            <div class="highlight" id="totalLoss">
+                <div>POTENTIAL LOSS</div>
+                <div class="result-value">$<span id="lossAmount">0.00</span></div>
+            </div>
 
-        <div class="highlight" id="totalProfit">
-            <div>POTENTIAL PROFIT</div>
-            <div class="result-value">$<span id="profitAmount">0.00</span></div>
+            <div class="highlight" id="totalProfit">
+                <div>POTENTIAL PROFIT</div>
+                <div class="result-value">$<span id="profitAmount">0.00</span></div>
+            </div>
         </div>
     </div>
 
     <script>
         function calculate() {
-            // Get input values
             const capital = parseFloat(document.getElementById('capital').value) || 0;
             const riskPercent = parseFloat(document.getElementById('riskPercent').value) || 0;
             const buyPrice = parseFloat(document.getElementById('buyPrice').value) || 0;
             const slPrice = parseFloat(document.getElementById('slPrice').value) || 0;
             const tpPrice = parseFloat(document.getElementById('tpPrice').value) || 0;
 
-            // Core calculations
             const riskAmount = (capital * riskPercent) / 100;
             const riskPerShare = buyPrice - slPrice;
             const rewardPerShare = tpPrice - buyPrice;
@@ -138,11 +156,7 @@
             const totalProfit = shares * rewardPerShare;
             const rrRatio = riskPerShare > 0 ? (rewardPerShare / riskPerShare).toFixed(2) : 0;
 
-            // Error handling
-            const errorElement = document.getElementById('sizeError');
-            errorElement.style.display = positionSize > capital ? 'block' : 'none';
-
-            // Update display
+            document.getElementById('sizeError').style.display = positionSize > capital ? 'block' : 'none';
             document.getElementById('shares').textContent = shares;
             document.getElementById('positionSize').textContent = positionSize.toFixed(2);
             document.getElementById('rrRatio').textContent = rrRatio;
@@ -150,7 +164,6 @@
             document.getElementById('profitAmount').textContent = totalProfit.toFixed(2);
         }
 
-        // Initialize calculator
         document.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', calculate);
         });
